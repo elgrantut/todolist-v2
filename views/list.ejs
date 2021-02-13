@@ -13,9 +13,10 @@
         name="delCheckbox"
         value="<%= item._id %>"
         onchange="this.form.submit()"
-      />
+      >
       <p><%= item.name %></p>
     </div>
+    <input type="hidden" name="listName" value="<%= listTitle %>"></input>
   </form>
 
   <%})%>
@@ -27,7 +28,7 @@
       placeholder="New Item"
       autocomplete="off"
     />
-    <button type="submit" name="list">+</button>
+    <button type="submit" name="list" value="<%= listTitle %>">+</button>
   </form>
 </div>
 

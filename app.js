@@ -3,6 +3,7 @@
 const express = require('express')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
+const { capitalize } = require('lodash')
 
 const app = express()
 
@@ -51,14 +52,6 @@ const item3 = new Item({
 
 const defaultItems = [item1, item2, item3]
 
-// Item.deleteOne({ name: 'test' }, (err) => {
-//   if (err) {
-//     console.log(err)
-//   } else {
-//     console.log('success!')
-//   }
-// })
-
 app.get('/', (req, res) => {
   Item.find({}, (err, results) => {
     if (err) {
@@ -81,23 +74,24 @@ app.get('/', (req, res) => {
 // Create a dinamic page category
 
 app.get('/:listName', (req, res) => {
-  const listName = req.params.listName
+  const listName = capitalize(req.params.listName)
 
-  List.findOne({ name: listName }, (err, results) => {
-    if (err) {
-      console.log(err)
-    } else if (!results) {
-      const list = new List({
-        name: listName,
-        items: defaultItems,
-      })
-      list.save()
-      res.redirect('/' + listName)
-    } else {
-      res.render('list', {
-        listTitle: results.name,
-        newListItems: results.items,
-      })
+  List.findOne({ name: listName }, (err, foundList) => {
+    if (!err) {
+      if (!foundList) {
+        const list = new List({
+          name: listName,
+          items: defaultItems,
+        })
+        list.save((err, result) => {
+          res.redirect('/' + listName)
+        })
+      } else {
+        res.render('list', {
+          listTitle: foundList.name,
+          newListItems: foundList.items,
+        })
+      }
     }
   })
 })
@@ -105,28 +99,55 @@ app.get('/:listName', (req, res) => {
 // Add items to the list
 
 app.post('/', function (req, res) {
-  const itemName = new Item({
-    name: req.body.newItem,
+  //Capture the names values of the list && the items
+
+  const itemName = req.body.newItem
+  const listName = req.body.list
+
+  //Create a new item
+
+  const item = new Item({
+    name: itemName,
   })
-  if (req.body.list === 'Work') {
-    itemName.save()
-    res.redirect('/work')
+
+  //Add´s a new item to the list
+
+  if (listName === 'Today') {
+    item.save((err, result) => res.redirect('/'))
   } else {
-    itemName.save()
-    res.redirect('/')
+    List.findOne({ name: listName }, (err, foundList) => {
+      foundList.items.push(item)
+      foundList.save((err, result) => res.redirect('/' + listName))
+    })
   }
 })
 
 app.post('/delete', (req, res) => {
+  //Capture values from the checkbox && the list title
   const id = req.body.delCheckbox
-  Item.findByIdAndRemove(id, (err) => {
-    if (err) {
-      console.log(err)
-    } else {
-      console.log('success! You have deleted a list item')
-      res.redirect('/')
-    }
-  })
+  const listName = req.body.listName
+
+  if (listName === 'Today') {
+    // Remove an item from the list
+    Item.findByIdAndRemove(id, (err) => {
+      if (err) {
+        console.log(err)
+      } else {
+        console.log('success! You have deleted a list item')
+        res.redirect('/')
+      }
+    })
+  } else {
+    List.findOneAndUpdate(
+      { name: listName },
+      { $pull: { items: { _id: id } } },
+      (err, foundList) => {
+        if (!err) {
+          res.redirect('/' + listName)
+        }
+      }
+    )
+  }
 })
 
 // Go to About page
