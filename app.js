@@ -86,12 +86,13 @@ app.get('/:listName', (req, res) => {
   List.findOne({ name: listName }, (err, results) => {
     if (err) {
       console.log(err)
-    } else if (!listName) {
+    } else if (!results) {
       const list = new List({
         name: listName,
         items: defaultItems,
       })
       list.save()
+      res.redirect('/' + listName)
     } else {
       res.render('list', {
         listTitle: results.name,
