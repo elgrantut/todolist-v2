@@ -18,6 +18,8 @@ mongoose.connect('mongodb://localhost:27017/todoListDB', {
   useUnifiedTopology: true,
 })
 
+mongoose.set('useFindAndModify', false)
+
 const itemsSchema = new mongoose.Schema({
   name: { type: String, required: [true, 'No names are specified!'] },
 })
@@ -81,7 +83,8 @@ app.post('/', function (req, res) {
 })
 
 app.post('/delete', (req, res) => {
-  // Item.deleteOne({ _id: req.body.delCheckbox }, (err) => {
+  const id = req.body.delCheckbox
+  // Item.findOneAndRemove({ _id: id }, (err) => {
   //   if (err) {
   //     console.log(err)
   //   } else {
@@ -89,7 +92,6 @@ app.post('/delete', (req, res) => {
   //     res.redirect('/')
   //   }
   // })
-  const id = req.body.delCheckbox
   Item.findByIdAndRemove(id, (err) => {
     if (err) {
       console.log(err)
