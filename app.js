@@ -14,10 +14,13 @@ app.use(express.static('public'))
 
 // Connect to DB
 
-mongoose.connect('mongodb://localhost:27017/todoListDB', {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(
+  'mongodb+srv://admin-matias:test-123@cluster0.04b6k.mongodb.net/todoListDB',
+  {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  }
+)
 
 mongoose.set('useFindAndModify', false)
 
@@ -156,6 +159,9 @@ app.get('/about', (req, res) => {
   res.render('about')
 })
 
-// Listens to port 3000
+let port = process.env.PORT
+if (port == null || port == '') {
+  port = 3000
+}
 
-app.listen(3000, () => console.log('Server started on port 3000'))
+app.listen(port, () => console.log('Server started successfully'))
