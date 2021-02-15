@@ -7,6 +7,10 @@ const { capitalize } = require('lodash')
 
 const app = express()
 
+//environment variables
+
+require('dotenv').config()
+
 app.set('view engine', 'ejs')
 
 app.use(bodyParser.urlencoded({ extended: true }))
@@ -14,13 +18,15 @@ app.use(express.static('public'))
 
 // Connect to DB
 
-mongoose.connect(
-  'mongodb+srv://admin-matias:test-123@cluster0.04b6k.mongodb.net/todoListDB',
-  {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  }
-)
+const uri = process.env.ATLAS_URI
+
+mongoose.connect(uri, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+
+const db = mongoose.connection
+db.once('open', () => console.log('Connected Database Successfully'))
 
 mongoose.set('useFindAndModify', false)
 
